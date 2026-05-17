@@ -53,4 +53,6 @@ uploaded_media/      Local uploaded media storage, ignored by Git
 
 ## Graphify Knowledge Graph
 
+[![CareCircle Graphify knowledge graph preview](docs/graphify-preview.svg)](docs/graphify.html)
+
 Open the generated project graph here: [docs/graphify.html](docs/graphify.html).
