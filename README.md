@@ -33,6 +33,17 @@ Or run the individual checks:
 See [docs/BASELINE_REPORT.md](docs/BASELINE_REPORT.md) and [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md).
 Start with [docs/INDEX.md](docs/INDEX.md) for the full documentation map.
 
+## Vercel Deployment
+
+This repo includes a Vercel ASGI entrypoint at `api/index.py` and routes all requests through the existing FastAPI app in `main.py`.
+
+```powershell
+npx vercel login
+npx vercel --prod --yes
+```
+
+Configure production secrets in the Vercel dashboard from `.env.example`; do not upload the local `.env` file.
+
 ## Repository Layout
 
 ```text
