@@ -44,6 +44,43 @@ tests/               Test suite and fixtures
 uploaded_media/      Local uploaded media storage, ignored by Git
 ```
 
+## System Architecture
+
+![CareCircle complete system architecture and flow](docs/carecircle-architecture.jpeg)
+
+The current runtime is organized around a fast FastAPI entrypoint, asynchronous media processing, deterministic validation, database-backed memory, and PharmaAgent safety review before caregiver-facing outputs.
+
+```mermaid
+flowchart LR
+    caregiver["Caregiver / Patient"] --> api["FastAPI app\nmain.py"]
+    api --> intent["Intent routing\nhandlers.py"]
+    api --> upload["Media upload\nimage / PDF / audio"]
+
+    upload --> ingestion["Ingestion orchestration\ningestion.py"]
+    ingestion --> extraction["Extraction engine\nOCR / PDF text / ASR"]
+    extraction --> classifier["Document classifier\nprescription / lab / note"]
+    classifier --> llm["LLM gateway\nstructured JSON extraction"]
+    llm --> validation["Deterministic validation\nnames / dose / unit / frequency"]
+
+    validation --> drafts["Draft or review state"]
+    validation --> entities["Entity writes\nmedications / labs / notes"]
+    entities --> db[("Supabase PostgreSQL")]
+
+    db --> pharma["PharmaAgent\ninteraction + safety engine"]
+    pharma --> tools["Evidence tools\nOpenFDA / PubMed / RxNav cache"]
+    pharma --> approvals["Approval + veto flow"]
+    pharma --> alerts["Alerts and caregiver notifications"]
+
+    intent --> appointments["Appointment manager"]
+    intent --> crisis["Crisis detection\nemergency card"]
+    appointments --> db
+    crisis --> db
+
+    db --> briefs["Daily briefings\n10 AM / 10 PM IST"]
+    alerts --> caregiver
+    briefs --> caregiver
+```
+
 ## Safety Rules For Restructure
 
 - Keep old root imports working until all runtime callers are migrated.
