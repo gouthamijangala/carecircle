@@ -1,0 +1,25 @@
+[project]
+name = "carecircle"
+version = "0.1.0"
+description = "Caregiver coordination, medical ingestion, and medication safety assistant."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    "venv",
+    "uploaded_media",
+    "graphify-out",
+    "poppler-windows-26.02.0-0",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+

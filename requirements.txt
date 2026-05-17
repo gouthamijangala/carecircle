@@ -1,0 +1,24 @@
+# Core web/runtime
+fastapi
+uvicorn
+python-dotenv
+requests
+psycopg2-binary
+openai
+
+# Document/media extraction
+pillow
+pymupdf
+pdfplumber
+paddleocr
+openai-whisper
+
+# NLP / embeddings
+numpy
+sentence-transformers
+torch
+
+# Optional operations
+apscheduler
+apprise
+

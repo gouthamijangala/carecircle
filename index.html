@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Care Circle – Sharma Family Test Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f0f0f5;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1c1c1e;
+            --text-secondary: #6e6e73;
+            --text-muted: #8e8e93;
+            --border-color: #e5e5ea;
+            --accent-color: #1c1c1e;
+            --message-sent: #f2f2f7;
+            --message-received: #ffffff;
+            --shadow-card: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-hover: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+            --gradient-header: linear-gradient(135deg, #fafafa 0%, #f5f5f7 100%);
+            --gradient-sidebar: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 50%, #f0f0f5 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 80px;
+            background: var(--gradient-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+            z-index: 10;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.03);
+        }
+
+        .logo-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #f8f8fc 0%, #f0f0f5 100%);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 18px;
+        }
+
+        .logo-icon:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .logo-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke: #4a4a6a;
+            fill: none;
+            stroke-width: 2;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-items {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .nav-item {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-secondary);
+            text-decoration: none;
+            position: relative;
+            background: transparent;
+        }
+
+        .nav-item:hover {
+            background: linear-gradient(135deg, #f5f5f7 0%, #ebebf0 100%);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #1c1c1e 0%, #3a3a3c 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(28,28,30,0.25);
+        }
+
+        .nav-item.active svg {
+            stroke: #ffffff;
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.8;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .logout {
+            margin-top: auto;
+            color: var(--text-secondary);
+        }
+
+        .logout:hover {
+            color: #ff3b30;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%) !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            height: 76px;
+            background: var(--gradient-header);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #1c1c1e 0%, #3a3a3c 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(28,28,30,0.2);
+        }
+
+        .brand-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: #ffffff;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .brand p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 24px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .profile-btn:hover {
+            background: var(--bg-primary);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+            border-color: #d1d1d6;
+        }
+
+        .profile-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            gap: 24px;
+            padding: 24px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .chat-column {
+            flex: 1;
+            min-width: 340px;
+            max-width: 420px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .chat-column::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(245,245,247,0.6) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .chat-column:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .chat-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+            position: relative;
+            z-index: 2;
+        }
+
+        .chat-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+        }
+
+        .chat-column:hover .avatar {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .avatar svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-secondary);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .chat-user-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
+        }
+
+        .chat-user-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 1px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #34c759;
+            border-radius: 50%;
+            border: 2px solid var(--bg-secondary);
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            box-shadow: 0 0 0 2px #ffffff;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+        }
+
+        .chat-menu {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .chat-menu:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }
+
+        .chat-menu svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: linear-gradient(180deg, #fafafa 0%, #f5f5f7 100%);
+            position: relative;
+            z-index: 2;
+        }
+
+        .date-divider {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin: 8px 0;
+            position: relative;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .date-divider::before,
+        .date-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: calc(50% - 40px);
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--border-color) 50%, transparent 100%);
+        }
+
+        .date-divider::before { left: 0; }
+        .date-divider::after { right: 0; }
+
+        .message {
+            max-width: 88%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            animation: messageSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(12px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .message.sent {
+            align-self: flex-end;
+        }
+
+        .message.received {
+            align-self: flex-start;
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            word-wrap: break-word;
+            transition: all 0.2s ease;
+        }
+
+        .message.sent .message-bubble {
+            background: linear-gradient(135deg, #f2f2f7 0%, #e8e8ed 100%);
+            color: var(--text-primary);
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .message.received .message-bubble {
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border-color);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .message.received.crisis-alert {
+            max-width: 96%;
+        }
+
+        .message.received.crisis-alert .message-bubble {
+            background:
+                linear-gradient(135deg, rgba(255, 245, 238, 0.98), rgba(255, 255, 255, 0.98)),
+                linear-gradient(90deg, #b42318, #f97316);
+            border: 2px solid #f97316;
+            border-left: 7px solid #b42318;
+            box-shadow: 0 14px 34px rgba(180, 35, 24, 0.14);
+            font-weight: 560;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            align-self: flex-end;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .message.sent .message-time {
+            padding-right: 4px;
+        }
+
+        .message.received .message-time {
+            padding-left: 4px;
+            align-self: flex-start;
+        }
+
+        .message-meta {
+            font-size: 10px;
+            color: var(--text-muted);
+            align-self: flex-start;
+            padding-left: 4px;
+            letter-spacing: 0;
+            font-weight: 600;
+        }
+
+        .checkmarks {
+            display: inline-flex;
+            gap: -3px;
+        }
+
+        .checkmarks svg {
+            width: 14px;
+            height: 14px;
+            stroke: #34c759;
+            fill: none;
+            stroke-width: 2.5;
+        }
+
+        .file-attachment {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .file-attachment:hover {
+            border-color: #c7c7cc;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            transform: translateY(-1px);
+        }
+
+        .file-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .file-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--text-secondary);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        .heart-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-top: 6px;
+            align-self: flex-start;
+            margin-left: 4px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .heart-btn:hover {
+            transform: scale(1.15) rotate(-5deg);
+            border-color: #ff2d55;
+            box-shadow: 0 4px 16px rgba(255,45,85,0.15);
+        }
+
+        .heart-btn:hover svg {
+            fill: #ff2d55;
+            stroke: #ff2d55;
+            animation: heartBeat 0.6s ease;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(0.95); }
+            75% { transform: scale(1.1); }
+        }
+
+        .heart-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-secondary);
+            fill: none;
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            padding: 14px 18px;
+            border-top: 1px solid var(--border-color);
+            background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+            position: relative;
+            z-index: 2;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f5f5f7 0%, #f0f0f5 100%);
+            border-radius: 28px;
+            padding: 4px 4px 4px 18px;
+            border: 1.5px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .input-container:focus-within {
+            border-color: #c7c7cc;
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .input-container input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: var(--text-primary);
+            padding: 10px 0;
+            font-weight: 500;
+        }
+
+        .input-container input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .input-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+
+        .input-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        .input-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #1c1c1e 0%, #3a3a3c 100%) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(28,28,30,0.2);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1) rotate(-5deg) !important;
+            box-shadow: 0 6px 20px rgba(28,28,30,0.3);
+        }
+
+        .send-btn svg {
+            stroke: white;
+        }
+
+        .safety-board {
+            flex: 0 0 360px;
+            max-width: 380px;
+            background: linear-gradient(180deg, #111318 0%, #1c1f26 100%);
+            color: #f8fafc;
+            border-radius: 24px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .safety-board h2 {
+            font-size: 18px;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+        }
+
+        .safety-board .subtle {
+            color: #aab2c0;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .safety-section {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .safety-section h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #dbe4f0;
+            margin-bottom: 10px;
+        }
+
+        .metric-row, .safety-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            color: #dbe4f0;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .metric-row:first-of-type, .safety-item:first-of-type {
+            border-top: 0;
+        }
+
+        .safety-item {
+            flex-direction: column;
+        }
+
+        .severity-pill {
+            align-self: flex-start;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .sev-critical { background: #ff453a; color: white; }
+        .sev-high { background: #ff9f0a; color: #1c1c1e; }
+        .sev-medium { background: #ffd60a; color: #1c1c1e; }
+        .sev-low, .sev-none { background: #34c759; color: #071b0d; }
+
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .approval-actions button, .refresh-safety {
+            border: 0;
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #f8fafc;
+            color: #111318;
+        }
+
+        .approval-actions button[data-action="veto"] {
+            background: #ff453a;
+            color: white;
+        }
+
+        .empty-state {
+            color: #aab2c0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-icon" title="CareCircle">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <nav class="nav-items">
+                <a class="nav-item active" href="#" aria-current="page">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    <span>Chat</span>
+                </a>
+                <a class="nav-item" href="#">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Logs</span>
+                </a>
+                <a class="nav-item" href="#">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>Notes</span>
+                </a>
+            </nav>
+            <a class="nav-item logout" href="#" title="Logout">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Exit</span>
+            </a>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Care Circle</h1>
+                        <p>Sharma Family · Test Console</p>
+                    </div>
+                </div>
+                <button class="profile-btn" type="button">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Admin
+                </button>
+            </header>
+
+            <section class="chat-area">
+                <article class="chat-column" data-column="0">
+                    <div class="chat-header">
+                        <div class="chat-user">
+                            <div class="avatar-wrapper">
+                                <div class="avatar">
+                                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <span class="status-dot" aria-hidden="true"></span>
+                            </div>
+                            <div class="chat-user-info">
+                                <h3>Meera Sharma</h3>
+                                <p>Daughter – Primary Caregiver</p>
+                            </div>
+                        </div>
+                        <button class="chat-menu" type="button" aria-label="More options">
+                            <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+                        </button>
+                    </div>
+                    <div class="messages">
+                        <div class="date-divider">Today</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="input-container">
+                            <button class="input-btn" type="button" aria-label="Attach file">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+                            </button>
+                            <input type="text" placeholder="Message as Meera (Daughter)…" autocomplete="off" />
+                            <button class="input-btn" type="button" aria-label="Voice note">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                            </button>
+                            <button class="input-btn send-btn" type="button" aria-label="Send">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chat-column" data-column="1">
+                    <div class="chat-header">
+                        <div class="chat-user">
+                            <div class="avatar-wrapper">
+                                <div class="avatar">
+                                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <span class="status-dot" aria-hidden="true"></span>
+                            </div>
+                            <div class="chat-user-info">
+                                <h3>Rajesh Sharma (Dad)</h3>
+                                <p>Patient</p>
+                            </div>
+                        </div>
+                        <button class="chat-menu" type="button" aria-label="More options">
+                            <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+                        </button>
+                    </div>
+                    <div class="messages">
+                        <div class="date-divider">Today</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="input-container">
+                            <button class="input-btn" type="button" aria-label="Attach file">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+                            </button>
+                            <input type="text" placeholder="Message as Rajesh (Dad)…" autocomplete="off" />
+                            <button class="input-btn" type="button" aria-label="Voice note">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                            </button>
+                            <button class="input-btn send-btn" type="button" aria-label="Send">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chat-column" data-column="2">
+                    <div class="chat-header">
+                        <div class="chat-user">
+                            <div class="avatar-wrapper">
+                                <div class="avatar">
+                                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <span class="status-dot" aria-hidden="true"></span>
+                            </div>
+                            <div class="chat-user-info">
+                                <h3>Rani Gupta</h3>
+                                <p>Home Nurse – Secondary Caregiver</p>
+                            </div>
+                        </div>
+                        <button class="chat-menu" type="button" aria-label="More options">
+                            <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+                        </button>
+                    </div>
+                    <div class="messages">
+                        <div class="date-divider">Today</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="input-container">
+                            <button class="input-btn" type="button" aria-label="Attach file">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+                            </button>
+                            <input type="text" placeholder="Message as Rani (Caregiver)…" autocomplete="off" />
+                            <button class="input-btn" type="button" aria-label="Voice note">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                            </button>
+                            <button class="input-btn send-btn" type="button" aria-label="Send">
+                                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <aside class="safety-board" aria-label="Pharma safety board">
+                    <h2>Pharma Safety</h2>
+                    <p class="subtle">Live safety state for Sharma family</p>
+                    <button class="refresh-safety" type="button" onclick="refreshPharmaDashboard()">Refresh</button>
+                    <div id="pharma-dashboard" style="margin-top: 14px;">
+                        <div class="safety-section">
+                            <p class="empty-state">Loading PharmaAgent dashboard...</p>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <script>
+// ============================================================
+// CARECIRCLE TEST CONSOLE – Sharma Family Connection
+// ============================================================
+
+const API_BASE = '';
+const SEND_URL = `${API_BASE}/api/send`;
+const UPLOAD_URL = `${API_BASE}/api/upload-media`;
+const PHARMA_DASHBOARD_URL = `${API_BASE}/api/pharma/dashboard`;
+const PHARMA_ACTION_URL = `${API_BASE}/api/pharma/approval-action`;
+const pendingFiles = {};
+const activeTaskPolls = new Map();
+let pharmaDashboardInFlight = null;
+let lastPharmaDashboardRefresh = 0;
+const PHARMA_DASHBOARD_MIN_INTERVAL_MS = 30000;
+
+// Map columns to seed data phone numbers — must match adapter expectations
+const COLUMN_CONFIG = {
+    0: { role: 'Meera (Daughter)',   phone: '+919876543211', name: 'Meera' },
+    1: { role: 'Rajesh (Dad)',       phone: '+919876543210', name: 'Dad'   },
+    2: { role: 'Rani (Caregiver)',   phone: '+919876543212', name: 'Rani'  },
+};
+
+function addMessageToColumn(colIdx, text, isSent, senderName = '', meta = null) {
+    const columns = document.querySelectorAll('.chat-column');
+    const col = columns[colIdx];
+    if (!col) return;
+    const msgContainer = col.querySelector('.messages');
+    if (!msgContainer) return;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+    if (!isSent && meta && String(meta.intent || '').startsWith('crisis')) {
+        msgDiv.classList.add('crisis-alert');
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    // Convert newlines to <br> and make URLs clickable
+    bubble.innerHTML = linkify(text.replace(/\n/g, "<br>"));
+
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'message-time';
+    timeDiv.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    msgDiv.appendChild(bubble);
+    if (!isSent && meta && typeof meta.confidence === 'number') {
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'message-meta';
+        const percent = Math.round(meta.confidence * 100);
+        const source = meta.source || 'unknown';
+        const intent = meta.intent || 'unknown';
+        metaDiv.textContent = `Confidence ${percent}% · ${intent} · ${source}`;
+        msgDiv.appendChild(metaDiv);
+    }
+    msgDiv.appendChild(timeDiv);
+    msgContainer.appendChild(msgDiv);
+    // Auto-scroll to bottom
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+function getInput(colIdx) {
+    const columns = document.querySelectorAll('.chat-column');
+    const col = columns[colIdx];
+    return col ? col.querySelector('.input-container input') : null;
+}
+
+/* Legacy inbound flow kept only as reference while /api/send is the active path.
+async function legacyInboundSendMessage(colIdx) {
+    const input = getInput(colIdx);
+    if (!input) return;
+    const text = input.value.trim();
+    const config = COLUMN_CONFIG[colIdx];
+    if (!config) return;
+
+    // Check for pending file attachment
+    let media_ref = null;
+    let media_type = null;
+    let fileFormData = null;
+    
+    if (window.pendingFile && window.pendingFile.colIdx === colIdx && window.pendingFile.file) {
+        const file = window.pendingFile.file;
+        fileFormData = new FormData();
+        fileFormData.append('file', file);
+        fileFormData.append('from_phone', config.phone);
+        fileFormData.append('raw_text', text || 'Sent a file');
+        fileFormData.append('channel', 'web');
+        fileFormData.append('timestamp', new Date().toISOString());
+        fileFormData.append('message_id', 'web_' + Date.now());
+        fileFormData.append('context', JSON.stringify({ test_mode: true, simulated_role: config.role }));
+        
+        // Determine media type
+        if (file.type.startsWith('image/')) media_type = 'image';
+        else if (file.type.startsWith('audio/')) media_type = 'audio';
+        else if (file.type === 'application/pdf') media_type = 'pdf';
+        else media_type = 'unknown';
+        
+        media_ref = file.name;
+        
+        // Show file message
+        addMessageToColumn(colIdx, `[Attached: ${file.name}]`, true, config.name);
+        
+        // Clear pending file
+        delete window.pendingFile;
+    } else if (!text) {
+        return;
+    } else {
+        // Show user's message immediately
+        addMessageToColumn(colIdx, text, true, config.name);
+    }
+
+    // Disable input while waiting for response
+    input.disabled = true;
+    input.value = '';
+    input.placeholder = input.placeholder.replace('Attached: ', 'Message as ');
+
+    const payload = {
+        from_phone: config.phone,
+        raw_text: text || 'Sent a file',
+        channel: 'web',
+        media_ref: media_ref,
+        media_type: media_type,
+        timestamp: new Date().toISOString(),
+        message_id: 'web_' + Date.now(),
+        context: { test_mode: true, simulated_role: config.role },
+    };
+
+    try {
+        let res;
+        if (fileFormData) {
+            // Upload with file
+            res = await fetch(INBOUND_URL, {
+                method: 'POST',
+                body: fileFormData,
+            });
+        } else {
+            // Text-only message
+            res = await fetch(INBOUND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const reply = data.response_text || 'No response';
+        addMessageToColumn(colIdx, reply, false, 'CareCircle');
+    } catch (err) {
+        addMessageToColumn(colIdx, `⚠️ ${err.message}`, false, 'System');
+    } finally {
+        input.disabled = false;
+        input.focus();
+    }
+}
+*/
+
+function linkify(text) {
+    const urlPattern = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlPattern, function(url) {
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = String(text ?? '');
+    return div.innerHTML;
+}
+
+function severityClass(severity) {
+    const value = String(severity || 'none').toLowerCase();
+    if (['critical', 'high', 'medium', 'low'].includes(value)) return `sev-${value}`;
+    return 'sev-none';
+}
+
+function dashboardSection(title, html) {
+    return `<div class="safety-section"><h3>${escapeHtml(title)}</h3>${html}</div>`;
+}
+
+function renderPharmaDashboard(data) {
+    const root = document.getElementById('pharma-dashboard');
+    if (!root) return;
+    if (!data || data.status !== 'ok') {
+        root.innerHTML = dashboardSection('Status', `<p class="empty-state">${escapeHtml(data?.reply || 'Dashboard unavailable')}</p>`);
+        return;
+    }
+
+    const quality = data.crisis_quality || {};
+    const qualityHtml = `
+        <div class="metric-row"><span>Patient</span><strong>${escapeHtml(data.profile?.patient_name || 'Patient')}</strong></div>
+        <div class="metric-row"><span>Crisis card</span><strong>${escapeHtml(quality.status || 'unknown')} (${Number(quality.score || 0)}%)</strong></div>
+        <div class="metric-row"><span>Issues</span><span>${escapeHtml((quality.issues || []).slice(0, 2).join(', ') || 'none')}</span></div>
+    `;
+
+    const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+    const alertHtml = alerts.length ? alerts.map((alert) => `
+        <div class="safety-item">
+            <span class="severity-pill ${severityClass(alert.severity)}">${escapeHtml(alert.severity || 'open')}</span>
+            <strong>${escapeHtml(alert.type || 'alert')}</strong>
+            <span>${escapeHtml(alert.message || 'No message')}</span>
+        </div>
+    `).join('') : '<p class="empty-state">No open PharmaAgent alerts.</p>';
+
+    const approvals = Array.isArray(data.approvals) ? data.approvals : [];
+    const approvalHtml = approvals.length ? approvals.map((approval) => `
+        <div class="safety-item">
+            <span class="severity-pill ${severityClass(approval.severity)}">${escapeHtml(approval.status || approval.severity || 'pending')}</span>
+            <strong>${escapeHtml(approval.drug_a || 'New drug')} + ${escapeHtml(approval.drug_b || 'existing drug')}</strong>
+            <span>Veto until: ${escapeHtml(approval.veto_expiry || 'not set')}</span>
+            <div class="approval-actions">
+                <button type="button" data-rule="${escapeHtml(approval.rule_hash)}" data-action="approve">Approve</button>
+                <button type="button" data-rule="${escapeHtml(approval.rule_hash)}" data-action="veto">Veto</button>
+            </div>
+        </div>
+    `).join('') : '<p class="empty-state">No pending approval windows.</p>';
+
+    const auditItems = (data.audit_summary?.items || []).slice(0, 4);
+    const auditHtml = auditItems.length ? auditItems.map((item) => `
+        <div class="metric-row"><span>${escapeHtml(item.action)}</span><strong>${Number(item.count || 0)}</strong></div>
+    `).join('') : '<p class="empty-state">No recent PharmaAgent audit rows.</p>';
+
+    root.innerHTML =
+        dashboardSection('Readiness', qualityHtml) +
+        dashboardSection('Open Alerts', alertHtml) +
+        dashboardSection('Approvals', approvalHtml) +
+        dashboardSection('24h Audit', auditHtml);
+}
+
+async function refreshPharmaDashboard(options = {}) {
+    try {
+        const force = Boolean(options.force);
+        const now = Date.now();
+        if (!force && now - lastPharmaDashboardRefresh < PHARMA_DASHBOARD_MIN_INTERVAL_MS) return;
+        if (pharmaDashboardInFlight) return pharmaDashboardInFlight;
+
+        const phone = COLUMN_CONFIG[0].phone;
+        pharmaDashboardInFlight = fetch(`${PHARMA_DASHBOARD_URL}?phone=${encodeURIComponent(phone)}`)
+            .then((res) => res.json())
+            .then((data) => {
+                lastPharmaDashboardRefresh = Date.now();
+                renderPharmaDashboard(data);
+            })
+            .finally(() => {
+                pharmaDashboardInFlight = null;
+            });
+        return pharmaDashboardInFlight;
+    } catch (err) {
+        renderPharmaDashboard({ status: 'error', reply: err.message });
+    }
+}
+
+async function submitPharmaApproval(ruleHash, action) {
+    try {
+        const res = await fetch(PHARMA_ACTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                phone: COLUMN_CONFIG[0].phone,
+                rule_hash: ruleHash,
+                action,
+            }),
+        });
+        const data = await res.json();
+        addMessageToColumn(0, data.reply || `Decision ${action} submitted.`, false, 'PharmaAgent', {
+            confidence: data.status === 'ok' ? 1 : 0.5,
+            intent: 'pharma_approval_action',
+            source: data.status || 'unknown',
+        });
+        refreshPharmaDashboard({ force: true });
+    } catch (err) {
+        addMessageToColumn(0, `Pharma action failed: ${err.message}`, false, 'System');
+    }
+}
+
+function findColumnByPhone(phone) {
+    const normalized = String(phone || '').trim();
+    for (const [idx, config] of Object.entries(COLUMN_CONFIG)) {
+        if (config.phone === normalized) return Number(idx);
+    }
+    return null;
+}
+
+function deliverCaregiverAlerts(alerts, senderColIdx) {
+    if (!Array.isArray(alerts)) return;
+
+    alerts.forEach((alert) => {
+        const targetColIdx = findColumnByPhone(alert.phone);
+        if (targetColIdx === null || targetColIdx === senderColIdx) return;
+
+        const alertText = alert.alert_text || alert.message || 'Emergency alert for the patient.';
+        addMessageToColumn(targetColIdx, alertText, false, 'CareCircle Alert', {
+            confidence: 1,
+            intent: 'caregiver_crisis_alert',
+            source: alert.notification_status || 'local_alert',
+        });
+    });
+}
+
+/* Legacy polling flow is disabled for the local /api/send prototype.
+// ----- Multi-party polling system -----
+async function pollPendingMessages() {
+    for (const [idx, config] of Object.entries(COLUMN_CONFIG)) {
+        try {
+            const res = await fetch(`${API_BASE}/api/pending-messages?phone=${encodeURIComponent(config.phone)}`);
+            if (!res.ok) continue;   // endpoint disabled in production — silently skip
+            const data = await res.json();
+            const messages = data.messages || [];
+            for (const msg of messages) {
+                // Display incoming messages as "received" bubbles
+                addMessageToColumn(parseInt(idx), msg.text, false, 'CareCircle');
+            }
+        } catch (e) {
+            // Silently ignore polling errors to avoid console spam
+        }
+    }
+}
+
+// Start polling every 2 seconds after page load
+// setInterval(pollPendingMessages, 2000);
+*/
+
+function initConsole() {
+    const columns = document.querySelectorAll('.chat-column');
+    columns.forEach((col, idx) => {
+        if (!COLUMN_CONFIG[idx]) return;
+        const sendBtn = col.querySelector('.send-btn');
+        if (sendBtn) sendBtn.addEventListener('click', () => sendMessage(idx));
+        const input = col.querySelector('.input-container input');
+        if (input) input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage(idx);
+            }
+        });
+    });
+    initMediaControls();
+    const dashboard = document.getElementById('pharma-dashboard');
+    if (dashboard) {
+        dashboard.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const ruleHash = target.getAttribute('data-rule');
+            const action = target.getAttribute('data-action');
+            if (ruleHash && action) submitPharmaApproval(ruleHash, action);
+        });
+    }
+    refreshPharmaDashboard({ force: true });
+    window.setInterval(() => {
+        if (document.hidden) return;
+        refreshPharmaDashboard();
+    }, PHARMA_DASHBOARD_MIN_INTERVAL_MS);
+    // Immediately check for messages that arrived before polling started
+    // pollPendingMessages();
+    console.log('✅ CareCircle test console ready – Sharma family');
+}
+
+/* File upload and voice note hooks are temporarily disabled for the local /api/send prototype.
+const attachBtns = document.querySelectorAll('button[aria-label="Attach file"]');
+attachBtns.forEach((btn) => {
+    // Create hidden file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,audio/*,application/pdf';
+    fileInput.style.display = 'none';
+    fileInput.setAttribute('multiple', 'false');
+    document.body.appendChild(fileInput);
+    
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        return;
+    });
+    
+    fileInput.addEventListener('change', async (e) => {
+        return;
+    });
+});
+
+const micBtns = document.querySelectorAll('button[aria-label="Voice note"]');
+micBtns.forEach((btn) => {
+    let mediaRecorder = null;
+    let audioChunks = [];
+    
+    btn.addEventListener('click', async () => {
+        return;
+        const column = btn.closest('.chat-column');
+        const colIdx = Array.from(document.querySelectorAll('.chat-column')).indexOf(column);
+        const config = COLUMN_CONFIG[colIdx];
+        
+        if (!mediaRecorder) {
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const file = new File([audioBlob], 'voice_note.webm', { type: 'audio/webm' });
+                    
+                    window.pendingFile = {
+                        file: file,
+                        colIdx: colIdx,
+                        input: column.querySelector('.input-container input')
+                    };
+                    
+                    // Send immediately
+                    sendMessage(colIdx);
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                    mediaRecorder = null;
+                };
+                
+                mediaRecorder.start();
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="red"><circle cx="12" cy="12" r="10"/></svg>';
+                btn.title = 'Stop recording';
+                
+            } catch (err) {
+                console.error('Mic error:', err);
+                alert('Could not access microphone. Please check permissions.');
+            }
+        } else {
+            // Stop recording
+            mediaRecorder.stop();
+            btn.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+            btn.title = 'Voice note';
+        }
+    });
+});
+*/
+
+function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error || new Error('Could not read file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function delay(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function describeFile(file) {
+    if (!file) return 'file';
+    const sizeKb = Math.max(1, Math.round(file.size / 1024));
+    if (file.type.startsWith('image/')) return `image: ${file.name} (${sizeKb} KB)`;
+    if (file.type.startsWith('audio/')) return `audio: ${file.name} (${sizeKb} KB)`;
+    if (file.type === 'application/pdf') return `PDF: ${file.name} (${sizeKb} KB)`;
+    return `${file.name} (${sizeKb} KB)`;
+}
+
+function isSupportedMedia(file) {
+    return Boolean(file && (file.type.startsWith('image/') || file.type.startsWith('audio/') || file.type === 'application/pdf'));
+}
+
+async function uploadMediaFile(file) {
+    const dataUrl = await fileToDataUrl(file);
+    const body = JSON.stringify({
+        filename: file.name,
+        media_type: file.type || 'application/octet-stream',
+        data_base64: dataUrl,
+    });
+    let res = null;
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            res = await fetch(UPLOAD_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+            });
+            break;
+        } catch (err) {
+            lastError = err;
+            await delay(750 + attempt * 1000);
+        }
+    }
+    if (!res) throw new Error(lastError?.message || 'Media upload request failed');
+    if (!res.ok) throw new Error(`Upload HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.status !== 'ok' || !data.media_url) throw new Error(data.error || 'Media upload failed');
+    return data;
+}
+
+function setPendingFile(colIdx, file, autoSend = false) {
+    const input = getInput(colIdx);
+    if (!file || !isSupportedMedia(file)) {
+        addMessageToColumn(colIdx, 'Unsupported file type. Please upload an image, audio file, or PDF.', false, 'System');
+        return;
+    }
+    pendingFiles[colIdx] = file;
+    if (input) {
+        input.placeholder = `Attached: ${file.name} - add caption or press Send`;
+        input.focus();
+    }
+    addMessageToColumn(colIdx, `Ready to upload ${describeFile(file)}`, true, COLUMN_CONFIG[colIdx]?.name || '');
+    if (autoSend) sendMessage(colIdx);
+}
+
+function initMediaControls() {
+    document.querySelectorAll('button[aria-label="Attach file"]').forEach((btn) => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*,audio/*,application/pdf';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput.value = '';
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files && fileInput.files[0];
+            const column = btn.closest('.chat-column');
+            const colIdx = Array.from(document.querySelectorAll('.chat-column')).indexOf(column);
+            setPendingFile(colIdx, file, false);
+        });
+    });
+
+    document.querySelectorAll('button[aria-label="Voice note"]').forEach((btn) => {
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let activeStream = null;
+        const originalHtml = btn.innerHTML;
+
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const column = btn.closest('.chat-column');
+            const colIdx = Array.from(document.querySelectorAll('.chat-column')).indexOf(column);
+
+            if (!mediaRecorder) {
+                try {
+                    activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioChunks = [];
+                    mediaRecorder = new MediaRecorder(activeStream);
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data && event.data.size > 0) audioChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const file = new File([audioBlob], `voice_note_${Date.now()}.webm`, { type: 'audio/webm' });
+                        if (activeStream) activeStream.getTracks().forEach((track) => track.stop());
+                        activeStream = null;
+                        mediaRecorder = null;
+                        btn.innerHTML = originalHtml;
+                        btn.title = 'Voice note';
+                        setPendingFile(colIdx, file, true);
+                    };
+                    mediaRecorder.start();
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="#ff3b30"><circle cx="12" cy="12" r="8"/></svg>';
+                    btn.title = 'Stop recording';
+                    addMessageToColumn(colIdx, 'Recording voice note... click mic again to stop.', false, 'System');
+                } catch (err) {
+                    mediaRecorder = null;
+                    if (activeStream) activeStream.getTracks().forEach((track) => track.stop());
+                    activeStream = null;
+                    addMessageToColumn(colIdx, `Microphone error: ${err.message}`, false, 'System');
+                }
+            } else {
+                mediaRecorder.stop();
+            }
+        });
+    });
+}
+
+async function sendMessage(colIdx) {
+    const input = getInput(colIdx);
+    if (!input) return;
+
+    const text = input.value.trim();
+    const config = COLUMN_CONFIG[colIdx];
+    const file = pendingFiles[colIdx];
+    if (!config || (!text && !file)) return;
+
+    if (text) addMessageToColumn(colIdx, text, true, config.name);
+    if (file) addMessageToColumn(colIdx, `Uploading ${describeFile(file)}...`, true, config.name);
+
+    input.disabled = true;
+    input.value = '';
+
+    const payload = {
+        phone: config.phone,
+        message: text || (file ? `Uploaded ${file.name}` : ''),
+    };
+
+    try {
+        if (file) {
+            const uploaded = await uploadMediaFile(file);
+            payload.media_url = uploaded.media_url;
+            payload.media_type = uploaded.media_type || file.type;
+            delete pendingFiles[colIdx];
+        }
+
+        const res = await fetch(SEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const reply = data.reply || 'No response';
+        const meta = data.task_id
+            ? { confidence: 1, intent: 'media_ingestion', source: `task ${data.task_id}` }
+            : {
+                confidence: Number(data.confidence ?? data.confidence_score ?? 0),
+                intent: data.intent,
+                source: data.source,
+            };
+        addMessageToColumn(colIdx, reply, false, 'CareCircle', {
+            confidence: meta.confidence,
+            intent: meta.intent,
+            source: meta.source,
+        });
+        if (data.task_id) {
+            pollTaskStatus(colIdx, data.task_id);
+        }
+        deliverCaregiverAlerts(data.caregiver_alerts, colIdx);
+        refreshPharmaDashboard({ force: true });
+    } catch (err) {
+        addMessageToColumn(colIdx, `Error: ${err.message}`, false, 'System');
+    } finally {
+        input.disabled = false;
+        if (!pendingFiles[colIdx]) {
+            input.placeholder = `Message as ${config.role}...`;
+        }
+        input.focus();
+    }
+}
+
+async function pollTaskStatus(colIdx, taskId, attempt = 0) {
+    const maxAttempts = 120;
+    if (!taskId || attempt >= maxAttempts) {
+        addMessageToColumn(colIdx, 'Still processing in the background. Please refresh status in a minute.', false, 'CareCircle', {
+            confidence: 1,
+            intent: 'media_ingestion_processing',
+            source: `task ${taskId}`,
+        });
+        activeTaskPolls.delete(taskId);
+        return;
+    }
+
+    if (activeTaskPolls.has(taskId) && attempt === 0) {
+        return;
+    }
+    activeTaskPolls.set(taskId, true);
+
+    try {
+        const res = await fetch(`/api/task-status/${encodeURIComponent(taskId)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const status = String(data.status || '').toLowerCase();
+
+        if (status === 'done') {
+            addMessageToColumn(colIdx, summarizeTaskResult(data.result), false, 'CareCircle', {
+                confidence: 1,
+                intent: 'media_ingestion_done',
+                source: `task ${taskId}`,
+            });
+            activeTaskPolls.delete(taskId);
+            refreshPharmaDashboard({ force: true });
+            return;
+        }
+
+        if (status === 'failed') {
+            addMessageToColumn(colIdx, `Failed: ${data.error || 'Could not process this file.'}`, false, 'CareCircle', {
+                confidence: 1,
+                intent: 'media_ingestion_failed',
+                source: `task ${taskId}`,
+            });
+            activeTaskPolls.delete(taskId);
+            return;
+        }
+    } catch (err) {
+        if (attempt > 8) {
+            addMessageToColumn(colIdx, `Status check error: ${err.message}`, false, 'System');
+            activeTaskPolls.delete(taskId);
+            return;
+        }
+    }
+
+    const nextDelay = Math.min(15000, 3000 + attempt * 2000);
+    window.setTimeout(() => pollTaskStatus(colIdx, taskId, attempt + 1), nextDelay);
+}
+
+function summarizeTaskResult(result) {
+    if (!result) return 'Done: file processed.';
+
+    const countItems = (value) => {
+        if (Array.isArray(value)) return value.length;
+        if (value && typeof value === 'object') return Object.keys(value).length;
+        return Number(value || 0);
+    };
+
+    const meds = countItems(result.medications_added);
+    const labs = countItems(result.tests_recorded);
+    const events = countItems(result.events_recorded);
+
+    if (meds) return `Done: ${meds} medication(s) saved.`;
+    if (labs) return `Done: ${labs} lab test(s) saved.`;
+    if (events) return `Done: ${events} care update(s) saved.`;
+    return 'Done: file processed. No actionable data was found.';
+}
+
+document.addEventListener('DOMContentLoaded', initConsole);
+    </script>
+</body>
+</html>

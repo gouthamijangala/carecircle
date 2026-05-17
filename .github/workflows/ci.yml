@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  syntax-and-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile Python sources
+        run: |
+          python -m compileall -q \
+            -x "venv|uploaded_media|graphify-out|poppler-windows-26.02.0-0|__pycache__" \
+            .
+
+      - name: Verify package structure imports
+        run: python scripts/verify/verify_structure_imports.py
+

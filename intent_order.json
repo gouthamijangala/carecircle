@@ -1,0 +1,29 @@
+{
+  "intent_order": [
+    "crisis_medical",
+    "crisis_safety",
+    "crisis_self_harm",
+    "crisis_death",
+    "medication_due_now",
+    "medication_report",
+    "medication_list",
+    "medication_schedule",
+    "medication_side_effect",
+    "symptom_report",
+    "vital_report",
+    "lab_report",
+    "health_status_query",
+    "emotional_checkin",
+    "caregiver_observation",
+    "new_prescription",
+    "appointment",
+    "caregiver_handoff",
+    "document_upload_confirmation",
+    "approve_command",
+    "veto_command",
+    "greeting_help",
+    "unclear"
+  ],
+  "seed_hash": "f90ba5a97932b13c6802f4cca57873eb7a26f7946fbe2554db373c4f3dbe862f",
+  "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+}
