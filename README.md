@@ -50,3 +50,7 @@ uploaded_media/      Local uploaded media storage, ignored by Git
 - Move small low-risk modules before large central modules.
 - Run verification after each migration batch.
 - Keep database SQL access centralized through `db.py` or its package-compatible facade.
+
+## Graphify Knowledge Graph
+
+Open the generated project graph here: [docs/graphify.html](docs/graphify.html).
