@@ -1,6 +1,7 @@
 ﻿from pathlib import Path
 import base64
 import json
+import os
 import re
 import sys
 import threading
@@ -51,7 +52,7 @@ def _json_safe(value):
 app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
 INDEX_FILE = BASE_DIR / "index.html"
-UPLOAD_DIR = BASE_DIR / "uploaded_media"
+UPLOAD_DIR = Path("/tmp/uploaded_media") if os.getenv("VERCEL") else BASE_DIR / "uploaded_media"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 
@@ -283,18 +284,19 @@ async def pharma_health():
         # 2. Check config and DB rule source.
         is_enabled = getattr(config, "PHARMA_AGENT_ENABLED", False)
         db_rule_count = len(get_all_drug_interactions())
-        research_summary = db.get_pharma_research_summary()
-        rule_registry = db.get_drug_interaction_registry_summary()
-        renal_rule_count = db.ensure_renal_dosing_rules()
-        outbox_ready = db.ensure_notification_outbox()
-        coordination_ready = db.ensure_care_coordination_tables()
+        is_serverless = bool(os.getenv("VERCEL"))
+        research_summary = db.get_pharma_research_summary() if not is_serverless else {}
+        rule_registry = db.get_drug_interaction_registry_summary() if not is_serverless else {}
+        renal_rule_count = db.ensure_renal_dosing_rules() if not is_serverless else None
+        outbox_ready = db.ensure_notification_outbox() if not is_serverless else None
+        coordination_ready = db.ensure_care_coordination_tables() if not is_serverless else None
 
         # 3. Check LLM Gateway availability. Prefer cached health when present,
-        # then fall back to a live best-model check for explicit health calls.
+        # then fall back to a live best-model check outside serverless health probes.
         try:
             cached_health = llm_gateway.get_cached_model_health()
             llm_ok = any(item.get("alive") for item in cached_health)
-            if not llm_ok:
+            if not llm_ok and not is_serverless:
                 llm_ok = llm_gateway.get_best_available_model() is not None
         except Exception:
             cached_health = []
@@ -309,11 +311,11 @@ async def pharma_health():
             diagnostics.append("drug_interactions has no active rules")
         if not llm_ok:
             diagnostics.append("No live LLM model currently available for explanations")
-        if renal_rule_count <= 0:
+        if renal_rule_count is not None and renal_rule_count <= 0:
             diagnostics.append("renal_dosing_rules has no active rules")
-        if not outbox_ready:
+        if outbox_ready is False:
             diagnostics.append("notification_outbox is not ready")
-        if not coordination_ready:
+        if coordination_ready is False:
             diagnostics.append("care coordination tables are not ready")
 
         status = "healthy" if (is_enabled and rule_count > 0) else "degraded"
@@ -334,6 +336,7 @@ async def pharma_health():
             "renal_rules_loaded": renal_rule_count,
             "notification_outbox_ready": outbox_ready,
             "care_coordination_ready": coordination_ready,
+            "serverless_fast_check": is_serverless,
             "daily_summary_enabled": getattr(config, "DAILY_SUMMARY_ENABLED", False),
             "day_brief_hour_local": getattr(config, "DAILY_DAY_BRIEF_HOUR_LOCAL", 10),
             "night_summary_hour_local": getattr(config, "DAILY_NIGHT_SUMMARY_HOUR_LOCAL", 22),

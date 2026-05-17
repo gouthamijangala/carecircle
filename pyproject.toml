@@ -3,6 +3,19 @@ name = "carecircle"
 version = "0.1.0"
 description = "Caregiver coordination, medical ingestion, and medication safety assistant."
 requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "python-dotenv",
+    "requests",
+    "psycopg2-binary",
+    "openai",
+    "pillow",
+    "pymupdf",
+    "pdfplumber",
+    "numpy",
+    "apscheduler",
+    "apprise",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -22,4 +35,3 @@ extend-exclude = [
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
-

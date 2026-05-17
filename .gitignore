@@ -51,3 +51,5 @@ skills-lock.json
 Thumbs.db
 .idea/
 .vscode/
+
+.vercel
