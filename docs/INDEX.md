@@ -6,6 +6,7 @@
 - [Baseline Report](BASELINE_REPORT.md)
 - [Known Issues](KNOWN_ISSUES.md)
 - [Demo Video Scenarios](DEMO_VIDEO_SCENARIOS.md)
+- [Demo Video Script](DEMO_VIDEO_SCRIPT.md)
 - [Verification](VERIFICATION.md)
 - [Project Context](PROJECT_CONTEXT_MASTER.md)
 - [PharmaAgent Operations](operations/PHARMA_AGENT_OPERATIONS.md)
